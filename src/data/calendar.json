@@ -1,0 +1,8 @@
+{
+  "view": "week",
+  "events": [
+    { "id": 101, "title": "Discovery Call - Acme", "date": "2025-08-27", "start": "10:00", "end": "10:30" },
+    { "id": 102, "title": "Demo - Globex", "date": "2025-08-27", "start": "14:00", "end": "14:45" },
+    { "id": 103, "title": "Follow-up - Initech", "date": "2025-08-28", "start": "11:15", "end": "11:45" }
+  ]
+}

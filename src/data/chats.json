@@ -1,0 +1,15 @@
+{
+  "threads": [
+    { "id": 201, "name": "Acme - Onboarding", "lastMessage": "Let's schedule kickoff.", "time": "09:12" },
+    { "id": 202, "name": "Globex - Pricing", "lastMessage": "Shared proposal v2.", "time": "Yesterday" }
+  ],
+  "messages": {
+    "201": [
+      { "from": "Alex", "text": "Welcome aboard!", "time": "09:12" },
+      { "from": "You", "text": "Let's schedule kickoff.", "time": "09:14" }
+    ],
+    "202": [
+      { "from": "Sam", "text": "Shared proposal v2.", "time": "13:38" }
+    ]
+  }
+}

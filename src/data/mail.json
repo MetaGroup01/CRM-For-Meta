@@ -1,0 +1,18 @@
+{
+  "folders": [
+    { "id": "inbox", "name": "Inbox", "unread": 3 },
+    { "id": "sent", "name": "Sent", "unread": 0 },
+    { "id": "archive", "name": "Archive", "unread": 0 }
+  ],
+  "messages": {
+    "inbox": [
+      { "id": 301, "from": "noreply@acme.com", "subject": "Welcome to Acme", "snippet": "Thanks for joining...", "time": "09:20" },
+      { "id": 302, "from": "sales@globex.com", "subject": "Pricing Update", "snippet": "Please find attached...", "time": "Yesterday" },
+      { "id": 303, "from": "support@initech.com", "subject": "Ticket #551", "snippet": "We've resolved your issue...", "time": "Mon" }
+    ],
+    "sent": [
+      { "id": 304, "from": "you@company.com", "subject": "Re: Demo", "snippet": "Following up on...", "time": "Tue" }
+    ],
+    "archive": []
+  }
+}
