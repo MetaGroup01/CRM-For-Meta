@@ -8,7 +8,6 @@ import Mail from '../pages/Mail.jsx'
 import Settings from '../pages/Settings.jsx'
 import NotFound from '../pages/NotFound.jsx'
 
-
 // Create placeholder components for new pages
 const Pipeline = () => (
   <div className="space-y-6">
