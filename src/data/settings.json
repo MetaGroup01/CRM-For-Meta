@@ -1,0 +1,8 @@
+{
+  "profile": { "name": "John Doe", "email": "john@example.com" },
+  "preferences": {
+    "notifications": true,
+    "darkMode": false,
+    "weeklySummary": true
+  }
+}
