@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, Navigate } from 'react-router-dom'
 import MainLayout from '../layouts/MainLayout.jsx'
 import Dashboard from '../pages/Dashboard.jsx'
 import Leads from '../pages/Leads.jsx'
@@ -7,6 +7,7 @@ import Chats from '../pages/Chats.jsx'
 import Mail from '../pages/Mail.jsx'
 import Settings from '../pages/Settings.jsx'
 import NotFound from '../pages/NotFound.jsx'
+import Login from '../pages/Login.jsx'
 
 // Create placeholder components for new pages
 const Pipeline = () => (
@@ -46,10 +47,14 @@ const Help = () => (
 
 export const router = createBrowserRouter([
   {
+    path: '/login',
+    element: <Login />,
+  },
+  {
     path: '/',
     element: <MainLayout />,
     children: [
-      { index: true, element: <Dashboard /> },
+      { index: true, element: <Navigate to="/dashboard" replace /> },
       { path: 'dashboard', element: <Dashboard /> },
       { path: 'leads', element: <Leads /> },
       { path: 'pipeline', element: <Pipeline /> },

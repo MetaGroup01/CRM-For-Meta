@@ -32,54 +32,81 @@ const statusColors = {
   lost: 'bg-red-100 text-red-800'
 }
 
+// Mapping lead statuses to stages
+const stageMapping = {
+  'Initial Contact': ['new'],
+  'Discussions': ['qualified'],
+  'Decision Making': ['negotiation'],
+  'Contract Discussion': ['proposal', 'won', 'lost']
+}
+
+function groupLeadsByStage(leads) {
+  const grouped = {
+    'Initial Contact': [],
+    'Discussions': [],
+    'Decision Making': [],
+    'Contract Discussion': []
+  }
+  leads.forEach(lead => {
+    for (const [stage, statuses] of Object.entries(stageMapping)) {
+      if (statuses.includes(lead.status)) {
+        grouped[stage].push(lead)
+        break
+      }
+    }
+  })
+  return grouped
+}
+
+function LeadCard({ lead }) {
+  return (
+    <Card className="mb-2 shadow-sm border border-gray-300">
+      <CardContent className="p-3">
+        <div className="flex justify-between text-xs text-gray-500 mb-1">
+          <div>{lead.owner}</div>
+          <div>{lead.createdAt}</div>
+        </div>
+        <div className="text-sm font-semibold text-blue-700 hover:underline cursor-pointer mb-1">{lead.name}</div>
+        <div className="flex justify-between text-xs text-gray-600">
+          <div>{lead.value.toLocaleString()} AED</div>
+          <div>
+            <Badge className={cn('uppercase', statusColors[lead.status] || statusColors.new)}>
+              {lead.status}
+            </Badge>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function QuickAddCard() {
+  return (
+    <Card className="mb-2 border border-dashed border-gray-400 flex items-center justify-center cursor-pointer hover:bg-gray-50">
+      <CardContent className="p-6 text-center text-gray-500">
+        Quick add
+      </CardContent>
+    </Card>
+  )
+}
+
 export default function Leads() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedStatus, setSelectedStatus] = useState('all')
-  const [sortField, setSortField] = useState('name')
-  const [sortDirection, setSortDirection] = useState('asc')
-  const [selectedLeads, setSelectedLeads] = useState([])
 
   const filteredLeads = leads.filter(lead => {
     const matchesSearch = lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         lead.company?.toLowerCase().includes(searchTerm.toLowerCase())
+                         lead.owner.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = selectedStatus === 'all' || lead.status === selectedStatus
     return matchesSearch && matchesStatus
   })
 
-  const sortedLeads = [...filteredLeads].sort((a, b) => {
-    const aValue = a[sortField]
-    const bValue = b[sortField]
-    const direction = sortDirection === 'asc' ? 1 : -1
-    
-    if (typeof aValue === 'string') {
-      return aValue.localeCompare(bValue) * direction
-    }
-    return (aValue - bValue) * direction
-  })
+  const groupedLeads = groupLeadsByStage(filteredLeads)
 
-  const handleSort = (field) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
-    } else {
-      setSortField(field)
-      setSortDirection('asc')
-    }
-  }
-
-  const handleSelectLead = (leadId) => {
-    setSelectedLeads(prev => 
-      prev.includes(leadId) 
-        ? prev.filter(id => id !== leadId)
-        : [...prev, leadId]
-    )
-  }
-
-  const handleSelectAll = () => {
-    setSelectedLeads(
-      selectedLeads.length === sortedLeads.length 
-        ? [] 
-        : sortedLeads.map(lead => lead.id)
-    )
+  // Calculate total value per stage
+  const stageTotals = {}
+  for (const stage in groupedLeads) {
+    stageTotals[stage] = groupedLeads[stage].reduce((sum, lead) => sum + lead.value, 0)
   }
 
   return (
@@ -112,7 +139,7 @@ export default function Leads() {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <input
                   type="text"
-                  placeholder="Search leads by name or company..."
+                  placeholder="Search leads by name or owner..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -140,169 +167,22 @@ export default function Leads() {
         </CardContent>
       </Card>
 
-      {/* Leads Table */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>
-              {sortedLeads.length} Leads
-              {selectedLeads.length > 0 && (
-                <span className="ml-2 text-sm font-normal text-gray-500">
-                  ({selectedLeads.length} selected)
-                </span>
-              )}
-            </CardTitle>
-            {selectedLeads.length > 0 && (
-              <div className="flex items-center space-x-2">
-                <Button variant="outline" size="sm">
-                  <Mail className="w-4 h-4 mr-2" />
-                  Email
-                </Button>
-                <Button variant="outline" size="sm">
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Delete
-                </Button>
-              </div>
-            )}
+      {/* Leads grouped by stage */}
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
+        {Object.entries(groupedLeads).map(([stage, leads]) => (
+          <div key={stage}>
+            <h2 className="text-xs font-bold uppercase text-gray-600 mb-2 border-b pb-1 border-gray-300">
+              {stage}
+            </h2>
+            <div className="text-xs text-gray-500 mb-4">
+              {leads.length} leads: {stageTotals[stage].toLocaleString()} AED
+            </div>
+            <QuickAddCard />
+            {leads.map(lead => (
+              <LeadCard key={lead.id} lead={lead} />
+            ))}
           </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-3 text-left">
-                    <input
-                      type="checkbox"
-                      checked={selectedLeads.length === sortedLeads.length && sortedLeads.length > 0}
-                      onChange={handleSelectAll}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
-                  </th>
-                  <th className="px-6 py-3 text-left">
-                    <button
-                      onClick={() => handleSort('name')}
-                      className="flex items-center space-x-1 text-xs font-medium text-gray-500 uppercase tracking-wider hover:text-gray-700"
-                    >
-                      <span>Lead</span>
-                      {sortField === 'name' && (
-                        sortDirection === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />
-                      )}
-                    </button>
-                  </th>
-                  <th className="px-6 py-3 text-left">
-                    <button
-                      onClick={() => handleSort('status')}
-                      className="flex items-center space-x-1 text-xs font-medium text-gray-500 uppercase tracking-wider hover:text-gray-700"
-                    >
-                      <span>Status</span>
-                      {sortField === 'status' && (
-                        sortDirection === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />
-                      )}
-                    </button>
-                  </th>
-                  <th className="px-6 py-3 text-left">
-                    <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Owner</span>
-                  </th>
-                  <th className="px-6 py-3 text-left">
-                    <button
-                      onClick={() => handleSort('value')}
-                      className="flex items-center space-x-1 text-xs font-medium text-gray-500 uppercase tracking-wider hover:text-gray-700"
-                    >
-                      <span>Value</span>
-                      {sortField === 'value' && (
-                        sortDirection === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />
-                      )}
-                    </button>
-                  </th>
-                  <th className="px-6 py-3 text-left">
-                    <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Created</span>
-                  </th>
-                  <th className="px-6 py-3 text-right">
-                    <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {sortedLeads.map((lead) => (
-                  <tr key={lead.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <input
-                        type="checkbox"
-                        checked={selectedLeads.includes(lead.id)}
-                        onChange={() => handleSelectLead(lead.id)}
-                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                      />
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                          <User className="w-5 h-5 text-white" />
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">{lead.name}</div>
-                          <div className="text-sm text-gray-500 flex items-center">
-                            <Building className="w-3 h-3 mr-1" />
-                            {lead.company || 'No company'}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <Badge className={statusColors[lead.status] || statusColors.new}>
-                        {lead.status}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900">{lead.owner}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900 flex items-center">
-                        <DollarSign className="w-4 h-4 mr-1 text-green-500" />
-                        {lead.value.toLocaleString()}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-500">{lead.createdAt}</div>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end space-x-2">
-                        <Button variant="ghost" size="sm">
-                          <Phone className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm">
-                          <Mail className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm">
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Pagination */}
-      <div className="flex items-center justify-between">
-        <div className="text-sm text-gray-700">
-          Showing <span className="font-medium">1</span> to <span className="font-medium">{sortedLeads.length}</span> of{' '}
-          <span className="font-medium">{sortedLeads.length}</span> results
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm" disabled>
-            Previous
-          </Button>
-          <Button variant="outline" size="sm" disabled>
-            Next
-          </Button>
-        </div>
+        ))}
       </div>
     </div>
   )
